@@ -558,8 +558,14 @@ int main(int argc, char** argv)
   s.set_debug(debug);
   s.configure_log(log, log_commits);
   s.set_histogram(histogram);
-
+  
+  auto t0 = std::chrono::high_resolution_clock::now();
   auto return_code = s.run();
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> t1_t0 = t1 - t0; // seconds
+  double freq = 1.0 / t1_t0.count();
+  double kfreq = freq / 1000.0;
+  std::cout << "freq = " << kfreq << " kHz\n" << std::endl;
 
   for (auto& mem : mems)
     delete mem.second;
