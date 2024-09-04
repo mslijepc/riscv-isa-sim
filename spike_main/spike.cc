@@ -3,6 +3,7 @@
 #include "config.h"
 #include "cfg.h"
 #include "sim.h"
+#include "sim-sysc.h"
 #include "mmu.h"
 #include "arith.h"
 #include "remote_bitbang.h"
@@ -21,6 +22,8 @@
 #include <cinttypes>
 #include <sstream>
 #include "../VERSION"
+#include <iostream>
+#include <chrono>
 
 static void help(int exit_code = 1)
 {
@@ -521,7 +524,8 @@ int main(int argc, char** argv)
     cfg.hartids = default_hartids;
   }
 
-  sim_t s(&cfg, halted,
+  sysc_sim_t s(&cfg, halted,
+  // sim_t s(&cfg, halted,
       mems, plugin_device_factories, htif_args, dm_config, log_path, dtb_enabled, dtb_file,
       socket,
       cmd_file);
