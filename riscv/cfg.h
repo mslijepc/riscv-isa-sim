@@ -73,6 +73,7 @@ public:
   reg_t                   pmpregions;
   reg_t                   pmpgranularity;
   std::vector<mem_cfg_t>  mem_layout;
+  std::vector<mem_cfg_t>  remote_mem_layout; // TODO: use mem_layout with the flag?
   std::optional<reg_t>    start_pc;
   std::vector<size_t>     hartids;
   bool                    explicit_hartids;

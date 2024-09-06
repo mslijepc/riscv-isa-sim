@@ -27,6 +27,7 @@ public:
 
   sysc_sim_t(const cfg_t *cfg, bool halted,
              std::vector<std::pair<reg_t, abstract_mem_t *>> mems,
+             const std::vector<std::pair<reg_t, abstract_mem_t *>> remote_mems,
              const std::vector<device_factory_sargs_t> &plugin_device_factories,
              const std::vector<std::string> &args,
              const debug_module_config_t &dm_config, const char *log_path,
@@ -51,6 +52,8 @@ public:
     } else if (!context) {
       std::cout << "zmq_ctx_new failed" << std::endl;
     }
+    for (auto& x : remote_mems)
+      get_bus()->add_device(x.first, x.second);
   } // end constructor
 
   // void step(size_t n) override {

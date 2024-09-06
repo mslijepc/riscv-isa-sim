@@ -68,6 +68,9 @@ public:
   static const size_t INSNS_PER_RTC_TICK = 100; // 10 MHz clock for 1 BIPS core
   static const size_t CPU_HZ = 1000000000; // 1GHz CPU
 
+protected:
+  bus_t* get_bus() { return &bus; }
+
 private:
   isa_parser_t isa;
   const cfg_t * const cfg;
