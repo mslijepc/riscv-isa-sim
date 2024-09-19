@@ -116,3 +116,46 @@ void mem_t::dump(std::ostream& o) {
     }
   }
 }
+
+
+remote_mem_t::remote_mem_t(reg_t size)
+  : sz(size)
+{
+  // printf("remote_mem_t::remote_mem_t: size = %lx\n", size);
+  if (size == 0 || size % PGSIZE != 0)
+    throw std::runtime_error("memory size must be a positive multiple of 4 KiB");
+}
+
+remote_mem_t::~remote_mem_t()
+{
+  for (auto& entry : sparse_memory_map)
+    free(entry.second);
+}
+
+char* remote_mem_t::contents(reg_t addr) {
+  // printf("remote contents\n");
+  reg_t ppn = addr >> PGSHIFT, pgoff = addr % PGSIZE;
+  auto search = sparse_memory_map.find(ppn);
+  if (search == sparse_memory_map.end()) {
+    // load new page
+    auto res = (char*)calloc(PGSIZE, 1);
+    if (res == nullptr)
+      throw std::bad_alloc();
+    sparse_memory_map[ppn] = res;
+    return res + pgoff;
+  }
+  return search->second + pgoff;
+}
+
+void remote_mem_t::dump(std::ostream& o) {
+  const char empty[PGSIZE] = {0};
+  for (reg_t i = 0; i < sz; i += PGSIZE) {
+    reg_t ppn = i >> PGSHIFT;
+    auto search = sparse_memory_map.find(ppn);
+    if (search == sparse_memory_map.end()) {
+      o.write(empty, PGSIZE);
+    } else {
+      o.write(sparse_memory_map[ppn], PGSIZE);
+    }
+  }
+}

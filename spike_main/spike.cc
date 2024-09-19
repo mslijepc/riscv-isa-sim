@@ -3,6 +3,7 @@
 #include "config.h"
 #include "cfg.h"
 #include "sim.h"
+#include "sim-sysc.h"
 #include "mmu.h"
 #include "arith.h"
 #include "remote_bitbang.h"
@@ -21,6 +22,8 @@
 #include <cinttypes>
 #include <sstream>
 #include "../VERSION"
+#include <iostream>
+#include <chrono>
 
 static void help(int exit_code = 1)
 {
@@ -30,6 +33,8 @@ static void help(int exit_code = 1)
   fprintf(stderr, "  -p<n>                 Simulate <n> processors [default 1]\n");
   fprintf(stderr, "  -m<n>                 Provide <n> MiB of target memory [default 2048]\n");
   fprintf(stderr, "  -m<a:m,b:n,...>       Provide memory regions of size m and n bytes\n");
+  fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
+  fprintf(stderr, "  -r<a:m,b:n,...>       Provide remote memory regions of size m and n bytes\n");
   fprintf(stderr, "                          at base addresses a and b (with 4 KiB alignment)\n");
   fprintf(stderr, "  -d                    Interactive debug mode\n");
   fprintf(stderr, "  -g                    Track histogram of PCs\n");
@@ -263,6 +268,16 @@ static std::vector<std::pair<reg_t, abstract_mem_t*>> make_mems(const std::vecto
   return mems;
 }
 
+static std::vector<std::pair<reg_t, abstract_mem_t*>> make_remote_mems(const std::vector<mem_cfg_t> &layout)
+{
+  std::vector<std::pair<reg_t, abstract_mem_t*>> mems;
+  mems.reserve(layout.size());
+  for (const auto &cfg : layout) {
+    mems.push_back(std::make_pair(cfg.get_base(), new remote_mem_t(cfg.get_size())));
+  }
+  return mems;
+}
+
 static unsigned long atoul_safe(const char* s)
 {
   char* e;
@@ -375,6 +390,7 @@ int main(int argc, char** argv)
 #endif
   parser.option('p', 0, 1, [&](const char* s){nprocs = atoul_nonzero_safe(s);});
   parser.option('m', 0, 1, [&](const char* s){cfg.mem_layout = parse_mem_layout(s);});
+  parser.option('r', 0, 1, [&](const char* s){cfg.remote_mem_layout = parse_mem_layout(s);});
   // I wanted to use --halted, but for some reason that doesn't work.
   parser.option('H', 0, 0, [&](const char UNUSED *s){halted = true;});
   parser.option(0, "rbb-port", 1, [&](const char* s){use_rbb = true; rbb_port = atoul_safe(s);});
@@ -460,6 +476,9 @@ int main(int argc, char** argv)
 
   std::vector<std::pair<reg_t, abstract_mem_t*>> mems =
       make_mems(cfg.mem_layout);
+  
+  std::vector<std::pair<reg_t, abstract_mem_t*>> remote_mems =
+      make_remote_mems(cfg.remote_mem_layout);
 
   if (kernel && check_file_exists(kernel)) {
     const char *isa = cfg.isa;
@@ -509,8 +528,9 @@ int main(int argc, char** argv)
     cfg.hartids = default_hartids;
   }
 
-  sim_t s(&cfg, halted,
-      mems, plugin_device_factories, htif_args, dm_config, log_path, dtb_enabled, dtb_file,
+  sysc_sim_t s(&cfg, halted,
+  // sim_t s(&cfg, halted,
+      mems, remote_mems, plugin_device_factories, htif_args, dm_config, log_path, dtb_enabled, dtb_file,
       socket,
       cmd_file);
   std::unique_ptr<remote_bitbang_t> remote_bitbang((remote_bitbang_t *) NULL);
@@ -542,8 +562,14 @@ int main(int argc, char** argv)
   s.set_debug(debug);
   s.configure_log(log, log_commits);
   s.set_histogram(histogram);
-
+  
+  auto t0 = std::chrono::high_resolution_clock::now();
   auto return_code = s.run();
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> t1_t0 = t1 - t0; // seconds
+  double freq = 1.0 / t1_t0.count();
+  double kfreq = freq / 1000.0;
+  std::cout << "freq = " << kfreq << " kHz\n" << std::endl;
 
   for (auto& mem : mems)
     delete mem.second;

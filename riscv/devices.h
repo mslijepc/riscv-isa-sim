@@ -51,8 +51,8 @@ class mem_t : public abstract_mem_t {
   mem_t(const mem_t& that) = delete;
   ~mem_t() override;
 
-  bool load(reg_t addr, size_t len, uint8_t* bytes) override { return load_store(addr, len, bytes, false); }
-  bool store(reg_t addr, size_t len, const uint8_t* bytes) override { return load_store(addr, len, const_cast<uint8_t*>(bytes), true); }
+  bool load(reg_t addr, size_t len, uint8_t* bytes) override { printf("mem_t::load\n"); return load_store(addr, len, bytes, false); }
+  bool store(reg_t addr, size_t len, const uint8_t* bytes) override { printf("mem_t::store\n");return load_store(addr, len, const_cast<uint8_t*>(bytes), true); }
   char* contents(reg_t addr) override;
   reg_t size() override { return sz; }
   void dump(std::ostream& o) override;
@@ -60,6 +60,24 @@ class mem_t : public abstract_mem_t {
  private:
   bool load_store(reg_t addr, size_t len, uint8_t* bytes, bool store);
 
+  std::map<reg_t, char*> sparse_memory_map;
+  reg_t sz;
+};
+
+class remote_mem_t : public abstract_mem_t {
+ public:
+  remote_mem_t(reg_t size);
+  remote_mem_t(const mem_t& that) = delete;
+  ~remote_mem_t() override;
+
+  bool load(reg_t addr, size_t len, uint8_t* bytes) override { printf("remote_mem_t::load. This IF is not used\n"); return false; }
+  bool store(reg_t addr, size_t len, const uint8_t* bytes) override { printf("remote_mem_t::store. This IF is not used\n"); return true; }
+  
+  char* contents(reg_t addr) override;
+  reg_t size() override { return sz; }
+  void dump(std::ostream& o) override;
+
+ private:
   std::map<reg_t, char*> sparse_memory_map;
   reg_t sz;
 };
@@ -91,7 +109,8 @@ class clint_t : public abstract_device_t {
 struct plic_context_t {
   plic_context_t(processor_t* proc, bool mmode)
     : proc(proc), mmode(mmode)
-  {}
+  {
+  }
 
   processor_t *proc;
   bool mmode;
