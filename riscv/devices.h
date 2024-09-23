@@ -64,6 +64,26 @@ class mem_t : public abstract_mem_t {
   reg_t sz;
 };
 
+
+class tty_mem_t : public abstract_mem_t {
+ public:
+  tty_mem_t(reg_t size);
+  tty_mem_t(const tty_mem_t& that) = delete;
+  ~tty_mem_t() override;
+
+  bool load(reg_t addr, size_t len, uint8_t* bytes) override { return false;}
+  bool store(reg_t addr, size_t len, const uint8_t* bytes) override { return false; }
+  char* contents(reg_t addr) override;
+  reg_t size() override { return sz; }
+  void dump(std::ostream& o) override;
+
+ private:
+  // bool load_store(reg_t addr, size_t len, uint8_t* bytes, bool store);
+
+  std::map<reg_t, char*> sparse_memory_map;
+  reg_t sz;
+};
+
 class clint_t : public abstract_device_t {
  public:
   clint_t(const simif_t*, uint64_t freq_hz, bool real_time);
