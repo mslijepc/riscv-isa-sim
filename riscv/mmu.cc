@@ -270,6 +270,11 @@ void mmu_t::store_slow_path_intrapage(reg_t len, const uint8_t* bytes, mem_acces
 
   if (actually_store) {
     if (auto host_addr = sim->addr_to_mem(paddr)) {
+      if (paddr == 0x5fffb030) {
+          printf("%c", (int)bytes[0]);
+      } else if (paddr == 0x5fffb008) {
+          printf("This should be end .h\n");
+      }
       memcpy(host_addr, bytes, len);
       if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))
         tracer.trace(paddr, len, STORE);
