@@ -128,6 +128,12 @@ public:
     bool tlb_hit = tlb_store_tag[vpn % TLB_ENTRIES] == vpn;
 
     if (!xlate_flags.is_special_access() && likely(aligned && tlb_hit)) {
+      if (addr == 0x5fffb030) {
+        char c = (char)val;
+        printf("%c", c);
+      } else if (addr == 0x5fffb008) {
+          printf("This should be end\n");
+      }
       *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val);
     } else {
       target_endian<T> target_val = to_target(val);

@@ -116,3 +116,47 @@ void mem_t::dump(std::ostream& o) {
     }
   }
 }
+
+tty_mem_t::tty_mem_t(reg_t size)
+  : sz(size)
+{
+  if (size == 0 || size % PGSIZE != 0)
+    throw std::runtime_error("memory size must be a positive multiple of 4 KiB");
+}
+
+tty_mem_t::~tty_mem_t()
+{
+  for (auto& entry : sparse_memory_map)
+    free(entry.second);
+}
+
+char* tty_mem_t::contents(reg_t addr) {
+
+  printf("Acessing TTY MEM %lx\n", addr);
+  // if (addr == 0x5fffb008 || addr == 0x5fffb030) /
+  // assert(0);
+  
+  reg_t ppn = addr >> PGSHIFT, pgoff = addr % PGSIZE;
+  auto search = sparse_memory_map.find(ppn);
+  if (search == sparse_memory_map.end()) {
+    auto res = (char*)calloc(PGSIZE, 1);
+    if (res == nullptr)
+      throw std::bad_alloc();
+    sparse_memory_map[ppn] = res;
+    return res + pgoff;
+  }
+  return search->second + pgoff;
+}
+
+void tty_mem_t::dump(std::ostream& o) {
+  const char empty[PGSIZE] = {0};
+  for (reg_t i = 0; i < sz; i += PGSIZE) {
+    reg_t ppn = i >> PGSHIFT;
+    auto search = sparse_memory_map.find(ppn);
+    if (search == sparse_memory_map.end()) {
+      o.write(empty, PGSIZE);
+    } else {
+      o.write(sparse_memory_map[ppn], PGSIZE);
+    }
+  }
+}
