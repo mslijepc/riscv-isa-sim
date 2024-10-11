@@ -75,6 +75,11 @@ private:
   reg_t get_pmlen(bool effective_virt, reg_t effective_priv, xlate_flags_t flags) const;
   mem_access_info_t generate_access_info(reg_t addr, access_type type, xlate_flags_t xlate_flags);
 
+  reg_t icache_misses{0};
+  reg_t icache_hits{0};
+
+  void print_stats();
+
 public:
   mmu_t(simif_t* sim, endianness_t endianness, processor_t* proc);
   ~mmu_t();
@@ -133,6 +138,8 @@ public:
         printf("%c", c);
       } else if (addr == 0x5fffb008) {
           printf("This should be end\n");
+          print_stats();
+          assert(0);
       }
       *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val);
     } else {
@@ -339,8 +346,11 @@ public:
   inline icache_entry_t* access_icache(reg_t addr)
   {
     icache_entry_t* entry = &icache[icache_index(addr)];
-    if (likely(entry->tag == addr))
+    if (likely(entry->tag == addr)) {
+      icache_hits++;
       return entry;
+    }
+    icache_misses++;
     return refill_icache(addr, entry);
   }
 
