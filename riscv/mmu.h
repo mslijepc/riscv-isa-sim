@@ -78,6 +78,11 @@ private:
   reg_t icache_misses{0};
   reg_t icache_hits{0};
 
+  reg_t dcache_misses{0};
+  reg_t dcache_hits{0};
+
+  reg_t refill_tlb_cnt{0};
+
   void print_stats();
 
 public:
@@ -92,8 +97,10 @@ public:
     bool tlb_hit = tlb_load_tag[vpn % TLB_ENTRIES] == vpn;
 
     if (likely(!xlate_flags.is_special_access() && aligned && tlb_hit)) {
+      dcache_hits++;
       res = *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr);
     } else {
+      dcache_misses++;
       load_slow_path(addr, sizeof(T), (uint8_t*)&res, xlate_flags);
     }
 
@@ -133,6 +140,7 @@ public:
     bool tlb_hit = tlb_store_tag[vpn % TLB_ENTRIES] == vpn;
 
     if (!xlate_flags.is_special_access() && likely(aligned && tlb_hit)) {
+      dcache_hits++;
       if (addr == 0x5fffb030) {
         char c = (char)val;
         printf("%c", c);
@@ -143,6 +151,7 @@ public:
       }
       *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val);
     } else {
+      dcache_misses++;
       target_endian<T> target_val = to_target(val);
       store_slow_path(addr, sizeof(T), (const uint8_t*)&target_val, xlate_flags, true, false);
     }
