@@ -273,7 +273,9 @@ void mmu_t::store_slow_path_intrapage(reg_t len, const uint8_t* bytes, mem_acces
       if (paddr == 0x5fffb030) {
           printf("%c", (int)bytes[0]);
       } else if (paddr == 0x5fffb008) {
-          printf("This should be end .h\n");
+          printf("This should be end .cpp\n");
+          print_stats();
+          assert(0);
       }
       memcpy(host_addr, bytes, len);
       if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))
@@ -317,9 +319,22 @@ void mmu_t::store_slow_path(reg_t original_addr, reg_t len, const uint8_t* bytes
     store_slow_path_intrapage(len, bytes, access_info, actually_store);
   }
 }
+void mmu_t::print_stats()
+{
+  printf("icache_hits: %" PRIu64 "\n", icache_hits);
+  printf("icache_misses: %" PRIu64 "\n", icache_misses);
+  printf("icache_hit_rate: %.2f\%\n", ((double)icache_hits / (icache_hits + icache_misses))*100);
+
+  printf("dcache_hits: %" PRIu64 "\n", dcache_hits);
+  printf("dcache_misses: %" PRIu64 "\n", dcache_misses);
+  printf("dcache_hit_rate: %.2f\%\n", ((double)dcache_hits / (dcache_hits + dcache_misses))*100);
+
+  printf("refill_tlb_cnt: %" PRIu64 "\n", refill_tlb_cnt);
+}
 
 tlb_entry_t mmu_t::refill_tlb(reg_t vaddr, reg_t paddr, char* host_addr, access_type type)
 {
+  refill_tlb_cnt++;
   reg_t idx = (vaddr >> PGSHIFT) % TLB_ENTRIES;
   reg_t expected_tag = vaddr >> PGSHIFT;
 
