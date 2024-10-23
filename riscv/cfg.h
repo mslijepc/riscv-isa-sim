@@ -6,6 +6,7 @@
 #include <vector>
 #include "decode.h"
 #include <cassert>
+#include <string>
 #include "platform.h"
 
 typedef enum {
@@ -77,6 +78,7 @@ class cfg_t
 {
   // mslijepc workaround
   #define PMP_SHIFT_CFG 2
+  const char* s76_isa;
   // end workaround
 public:
   cfg_t() {
@@ -94,6 +96,64 @@ public:
     explicit_hartids = false;
     real_time_clint  = false;
     trigger_count    = 4;
+
+    // s76 workaround
+    s76_isa = "rv64imafc_zicsr_zifencei_zihintpause_zihpm_zba_zbb_zcb_zcmp_zcmt_zkt_sscofpmf";
+    // end workaround
+  }
+
+  void set_s76_isa() {
+    isa = s76_isa;
+  }
+
+  void set_s76_mem_layout() {
+    mem_layout = std::vector<mem_cfg_t>({mem_cfg_t(reg_t(DRAM_BASE), (size_t)2048 << 20)});
+    mem_layout.push_back(mem_cfg_t(reg_t(0x0), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x1700000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x2000000), size_t(0x10000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x2010000), size_t(0x8000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x2018000), size_t(0x8000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x2030000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x2060000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x2061000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3100000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3101000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4000000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4010000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4011000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4025000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4030000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4048000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4049000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4050000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4070000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4072000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4073000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4078000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x407a000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4100000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4101000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0xc000000), size_t(0x10000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0xd000000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0xd100000), size_t(0x8000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x10000000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x10180000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x17000000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x17004000), size_t(0x4000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x20000000), size_t(0x1fff5000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff5000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff6000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff7000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff8000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffa000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffb000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffc000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffd000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffe000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x3ffff000), size_t(0x1000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x40000000), size_t(0x20000000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x7f000000), size_t(0x1000000000)));
+    mem_layout.push_back(mem_cfg_t(reg_t(0x4f00000), size_t(0x1000)));
   }
 
   std::pair<reg_t, reg_t> initrd_bounds;
