@@ -91,6 +91,7 @@ class mem_t : public abstract_mem_t {
     for (auto& entry : sparse_memory_map)
       free(entry.second);
   }
+  const std::string name() override { return "mem"; }
 
   bool load(reg_t addr, size_t len, uint8_t* bytes) override { return load_store(addr, len, bytes, false); }
   bool store(reg_t addr, size_t len, const uint8_t* bytes) override { return load_store(addr, len, const_cast<uint8_t*>(bytes), true); }
