@@ -6,6 +6,7 @@
 #include "disasm.h"
 #include "decode_macros.h"
 #include <cassert>
+#include <chrono>
 
 static void commit_log_reset(processor_t* p)
 {
@@ -211,6 +212,9 @@ bool processor_t::slow_path()
 // fetch/decode/execute loop
 void processor_t::step(size_t n)
 {
+  static size_t total_instructions = 0;
+  static auto start_time = std::chrono::high_resolution_clock::now();
+  
   if (!state.debug_mode) {
     if (halt_request == HR_REGULAR) {
       enter_debug_mode(DCSR_CAUSE_DEBUGINT, 0);
@@ -220,6 +224,18 @@ void processor_t::step(size_t n)
       enter_debug_mode(DCSR_CAUSE_HALT, 0);
     }
   }
+
+  if (total_instructions % 100000 == 0) {  // Report every 100,000 instructions
+    // auto start_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(start_time.time_since_epoch()).count();
+    auto current_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = current_time - start_time;
+    double mips = (total_instructions / 1e6) / diff.count();
+    // printf("Time passed = %.6f seconds\n", diff.count());
+    // printf("Total instructions = %ld\n", total_instructions);
+    // printf("total inst = %ld\n", total_instructions);
+    printf("sim speed: %.2f MIPS\n", mips);
+  }
+  total_instructions += n;
 
   while (n > 0) {
     size_t instret = 0;
