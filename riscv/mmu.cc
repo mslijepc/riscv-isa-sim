@@ -273,9 +273,13 @@ void mmu_t::store_slow_path_intrapage(reg_t len, const uint8_t* bytes, mem_acces
       if (paddr == 0x5fffb030) {
           printf("%c", (int)bytes[0]);
       } else if (paddr == 0x5fffb008) {
+          if (finished) return;
           printf("This should be end .cpp\n");
-          print_stats();
-          assert(0);
+          if (!finished)
+            print_stats();
+          finished = true;
+          exit(0);
+          return;
       }
       memcpy(host_addr, bytes, len);
       if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))

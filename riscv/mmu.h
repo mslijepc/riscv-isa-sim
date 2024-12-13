@@ -84,6 +84,7 @@ private:
   reg_t refill_tlb_cnt{0};
 
   void print_stats();
+  bool finished = false;
 
 public:
   mmu_t(simif_t* sim, endianness_t endianness, processor_t* proc);
@@ -146,8 +147,11 @@ public:
         printf("%c", c);
       } else if (addr == 0x5fffb008) {
           printf("This should be end\n");
-          print_stats();
-          assert(0);
+          if (!finished) // print stats only once
+            print_stats();
+          exit(0);
+          finished = true;
+          return;
       }
       *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val);
     } else {
