@@ -171,10 +171,21 @@ tty_mem_t::~tty_mem_t()
 
 char* tty_mem_t::contents(reg_t addr) {
 
-  printf("Acessing TTY MEM %lx\n", addr);
-  // if (addr == 0x5fffb008 || addr == 0x5fffb030) /
-  // assert(0);
-  
+  printf("Acessing TTY MEM with addr: 0x%lx\n", addr);
+  if (addr == 0x5fffb008){
+    assert(0);
+  } else if(addr == 0x5fffb030 || addr == 0x30){
+    printf("%c", 'x');
+  } else {
+    printf("acessing tty mem with addr: 0x%lx --- This is not good\n");
+    assert(0);
+  }
+  // mslijepc
+  if (sim != nullptr) {
+    printf("TTY is not 0\n");
+    return sim->send_dmi(addr);  
+  }
+
   reg_t ppn = addr >> PGSHIFT, pgoff = addr % PGSIZE;
   auto search = sparse_memory_map.find(ppn);
   if (search == sparse_memory_map.end()) {
