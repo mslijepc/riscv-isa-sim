@@ -109,13 +109,14 @@ class tty_mem_t : public abstract_mem_t {
 
 class clint_t : public abstract_device_t {
  public:
-  clint_t(const simif_t*, uint64_t freq_hz, bool real_time);
+  clint_t(const simif_t*, uint64_t freq_hz, bool real_time, bool is_clic = false);
   bool load(reg_t addr, size_t len, uint8_t* bytes) override;
   bool store(reg_t addr, size_t len, const uint8_t* bytes) override;
   size_t size() { return CLINT_SIZE; }
   void tick(reg_t rtc_ticks) override;
   uint64_t get_mtimecmp(reg_t hartid) { return mtimecmp[hartid]; }
   uint64_t get_mtime() { return mtime; }
+  bool is_clic();
  private:
   typedef uint64_t mtime_t;
   typedef uint64_t mtimecmp_t;
@@ -127,6 +128,7 @@ class clint_t : public abstract_device_t {
   uint64_t real_time_ref_usecs;
   mtime_t mtime;
   std::map<size_t, mtimecmp_t> mtimecmp;
+  uint8_t *dummy_clic;
 };
 
 #define PLIC_MAX_DEVICES 1024
@@ -176,6 +178,62 @@ class plic_t : public abstract_device_t, public abstract_interrupt_controller_t 
                      reg_t offset, uint32_t val);
 };
 
+// class aplic_t: public abstract_device_t {
+//  public:
+//   aplic_t(std::vector<processor_t*>& procs, AplicConfig& config);
+//   bool load(reg_t addr, size_t len, uint8_t* bytes);
+//   bool store(reg_t addr, size_t len, const uint8_t* bytes);
+//   void set_bus_ref(bus_t& bus) {bus_p = &bus;}
+
+//  private:
+//   void aplic_domain_init(AplicConfig& config);
+//   bool gen_msi_read (uint32_t domain, uint32_t *val);
+//   bool gen_msi_write(uint32_t domain, uint32_t val);
+//   void aplic_imsic_write(uint32_t hart_id, uint32_t intr, uint32_t di);
+//   void aplic_update(uint32_t domain);
+//   void array_update(uint32_t *array, enum APLIC_ARRAY_OP op, uint32_t intr);
+//   void sourcecfg_update(uint32_t di, uint8_t sm, uint32_t intr);
+//   bool read_idc(reg_t idc_addr, uint32_t di, uint32_t &val);
+//   bool write_idc(reg_t idc_addr, uint32_t di, uint32_t val);
+//   void clear_external_interrupt(AplicDomainCntx& d, uint32_t hart_id);
+
+//   std::vector<processor_t*>& procs;
+//   uint32_t max_procs;
+//   aplic_context_t context;
+//   bus_t* bus_p;
+// };
+
+// class imsic_t : public abstract_device_t {
+//  public:
+//   imsic_t(std::vector<processor_t*>& procs, uint32_t mode);
+//   virtual bool load(reg_t addr, size_t len, uint8_t* bytes) override;
+//   reg_t read_imsic_reg(uint32_t fi, uint32_t reg_num);
+//   void write_imsic_reg(uint32_t fi, uint32_t reg_num, reg_t data);
+//   void imsic_clear_intr(uint32_t index, uint32_t intr_num);
+//  protected:
+//   typedef std::map<uint32_t, reg_t> INTR_FILE;
+//   void imsic_reg_init(INTR_FILE& f);
+//   void imsic_update(uint32_t index);
+//   void get_reg_num_and_pos(uint32_t xlen, uint32_t intr_num, uint32_t *num, uint32_t *pos);
+
+//   std::vector<processor_t*>& procs;
+//   uint32_t max_procs;
+//   INTR_FILE* intr_f;
+//   uint32_t mode;
+// };
+
+// class imsic_m_t : public imsic_t {
+//  public:
+//   imsic_m_t(std::vector<processor_t*>& procs);
+//   virtual bool store(reg_t addr, size_t len, const uint8_t* bytes) override;
+// };
+
+// class imsic_s_t : public imsic_t {
+//  public:
+//   imsic_s_t(std::vector<processor_t*>& procs);
+//   virtual bool store(reg_t addr, size_t len, const uint8_t* bytes) override;
+// };
+
 class ns16550_t : public abstract_device_t {
  public:
   ns16550_t(abstract_interrupt_controller_t *intctrl,
@@ -207,6 +265,28 @@ class ns16550_t : public abstract_device_t {
   int backoff_counter;
   static const int MAX_BACKOFF = 16;
 };
+
+// class sfspi_t : public abstract_device_t {
+//  public:
+//   sfspi_t(reg_t size);
+//   bool load(reg_t addr, size_t len, uint8_t* bytes);
+//   bool store(reg_t addr, size_t len, const uint8_t* bytes);
+//  private:
+//   std::vector<uint8_t> mem;
+//   reg_t base_addr;
+//   reg_t size;
+// };
+
+// class dummy_device_t : public abstract_device_t {
+//  public:
+//   dummy_device_t(reg_t size);
+//   bool load(reg_t addr, size_t len, uint8_t* bytes);
+//   bool store(reg_t addr, size_t len, const uint8_t* bytes);
+//  private:
+//   std::vector<uint8_t> mem;
+//   reg_t base_addr;
+//   reg_t size;
+// };
 
 template<typename T>
 void write_little_endian_reg(T* word, reg_t addr, size_t len, const uint8_t* bytes)
