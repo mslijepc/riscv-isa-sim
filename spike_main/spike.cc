@@ -261,9 +261,6 @@ static std::vector<std::pair<reg_t, abstract_mem_t*>> make_mems(const std::vecto
     mems.push_back(std::make_pair(cfg.get_base(), new mem_t(cfg.get_size())));
   }
 
-  // TODO mslijepc: make this from command line
-  mems.push_back(std::make_pair(0x5fffb000, new tty_mem_t(0x1000)));
-
   return mems;
 }
 
@@ -461,11 +458,6 @@ int main(int argc, char** argv)
 
   if (!*argv1)
     help();
-
-  // mslijepc workaround
-  cfg.set_s76_isa();
-  cfg.set_s76_mem_layout();
-  // end workaround
 
   std::vector<std::pair<reg_t, abstract_mem_t*>> mems =
       make_mems(cfg.mem_layout);

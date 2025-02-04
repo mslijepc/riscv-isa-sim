@@ -96,66 +96,22 @@ public:
     explicit_hartids = false;
     real_time_clint  = false;
     trigger_count    = 4;
-
-    // s76 workaround
-    s76_isa = "rv64imafc_zicsr_zifencei_zihintpause_zihpm_zba_zbb_zcb_zcmp_zcmt_zkt_sscofpmf";
     // end workaround
   }
 
-  void set_s76_isa() {
-    isa = s76_isa;
-  }
+  void set_systemc_config(
+    const char* isa_str, 
+    const std::vector<std::pair<reg_t, size_t>>& mem_layout,
+    const reg_t tty_base
+    ) {
 
-  void set_s76_mem_layout() {
-    mem_layout = std::vector<mem_cfg_t>({mem_cfg_t(reg_t(DRAM_BASE), (size_t)2048 << 20)});
-    mem_layout.push_back(mem_cfg_t(reg_t(0x0), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x1700000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x2000000), size_t(0x10000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x2010000), size_t(0x8000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x2018000), size_t(0x8000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x2030000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x2060000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x2061000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3100000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3101000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4000000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4010000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4011000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4025000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4030000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4048000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4049000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4050000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4070000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4072000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4073000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4078000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x407a000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4100000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4101000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0xc000000), size_t(0x10000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0xd000000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0xd100000), size_t(0x8000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x10000000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x10180000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x17000000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x17004000), size_t(0x4000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x20000000), size_t(0x1fff5000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff5000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff6000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff7000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fff8000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffa000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffb000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffc000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffd000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3fffe000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x3ffff000), size_t(0x1000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x40000000), size_t(0x20000000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x7f000000), size_t(0x1000000000)));
-    mem_layout.push_back(mem_cfg_t(reg_t(0x4f00000), size_t(0x1000)));
+    isa = isa_str;
+    for (const auto& mem : mem_layout) {
+      this->mem_layout.push_back(mem_cfg_t(mem.first, mem.second));
+    }
+    this->tty_base = tty_base;
   }
-
+ 
   std::pair<reg_t, reg_t> initrd_bounds;
   const char *            bootargs;
   const char *            isa;
@@ -170,6 +126,7 @@ public:
   bool                    explicit_hartids;
   bool                    real_time_clint;
   reg_t                   trigger_count;
+  reg_t                   tty_base; // mslijepc TODO: make this optional
 
   size_t nprocs() const { return hartids.size(); }
   size_t max_hartid() const { return hartids.back(); }
