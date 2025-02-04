@@ -118,44 +118,6 @@ void mem_t::dump(std::ostream& o) {
 }
 
 
-sysc_mem_t::sysc_mem_t(reg_t size, simif_t* sim) 
-  : sz(size), sim(sim)
-{
-  if (size == 0 || size % PGSIZE != 0) {
-    fprintf(stderr, "Memory size is %" PRIu64 "\n", size);
-    throw std::runtime_error("memory size must be a positive multiple of 4 KiB");
-  }
-}
-
-sysc_mem_t::~sysc_mem_t()
-{
-
-}
-
-const std::string sysc_mem_t::name() {
-  return "sysc_mem";
-}
-
-char* sysc_mem_t::contents(reg_t addr) {
-  if (!sim)
-    throw std::runtime_error("sysc_mem_t::contents called before simif_t set");
-  // printf("acessing DMI for addr %lx\n", addr);
-  return sim->send_dmi(addr);
-}
-
-reg_t sysc_mem_t::size() {
-  return sz;
-}
-
-void sysc_mem_t::dump(std::ostream& o) {
-  // TODO:
-}
-
-
-
-
-
-
 tty_mem_t::tty_mem_t(reg_t size, simif_t* sim)
   : sz(size), sim(sim)
 {

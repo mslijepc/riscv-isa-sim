@@ -6,7 +6,7 @@
 #include "sim.h"
 #include "dts.h"
 
-clint_t::clint_t(const simif_t* sim, uint64_t freq_hz, bool real_time, bool is_clic)
+clint_t::clint_t(const simif_t* sim, uint64_t freq_hz, bool real_time)
   : sim(sim), freq_hz(freq_hz), real_time(real_time), mtime(0)
 {
   struct timeval base;
@@ -18,9 +18,6 @@ clint_t::clint_t(const simif_t* sim, uint64_t freq_hz, bool real_time, bool is_c
   tick(0);
 }
 
-bool clint_t::is_clic() {
-  return dummy_clic != nullptr;
-}
 
 /* 0000 msip hart 0
  * 0004 msip hart 1

@@ -65,26 +65,6 @@ class mem_t : public abstract_mem_t {
 };
 
 
-class sysc_mem_t : public abstract_mem_t {
- public:
-  sysc_mem_t(reg_t size, simif_t* sim);
-  sysc_mem_t(const sysc_mem_t& that) = delete;
-  ~sysc_mem_t() override;
-  const std::string name() override;
-
-  char* contents(reg_t addr) override;
-
-  bool load(reg_t addr, size_t len, uint8_t* bytes) override {}
-  bool store(reg_t addr, size_t len, const uint8_t* bytes) override {}
-
-  reg_t size() override;
-  void dump(std::ostream& o) override;
-
- private:
-  simif_t* sim = nullptr;
-
-  reg_t sz;
-};
 
 class tty_mem_t : public abstract_mem_t {
  public:
@@ -109,14 +89,13 @@ class tty_mem_t : public abstract_mem_t {
 
 class clint_t : public abstract_device_t {
  public:
-  clint_t(const simif_t*, uint64_t freq_hz, bool real_time, bool is_clic = false);
+  clint_t(const simif_t*, uint64_t freq_hz, bool real_time);
   bool load(reg_t addr, size_t len, uint8_t* bytes) override;
   bool store(reg_t addr, size_t len, const uint8_t* bytes) override;
   size_t size() { return CLINT_SIZE; }
   void tick(reg_t rtc_ticks) override;
   uint64_t get_mtimecmp(reg_t hartid) { return mtimecmp[hartid]; }
   uint64_t get_mtime() { return mtime; }
-  bool is_clic();
  private:
   typedef uint64_t mtime_t;
   typedef uint64_t mtimecmp_t;
@@ -128,7 +107,6 @@ class clint_t : public abstract_device_t {
   uint64_t real_time_ref_usecs;
   mtime_t mtime;
   std::map<size_t, mtimecmp_t> mtimecmp;
-  uint8_t *dummy_clic;
 };
 
 #define PLIC_MAX_DEVICES 1024
