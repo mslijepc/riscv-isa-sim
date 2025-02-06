@@ -380,4 +380,15 @@ void state_t::csr_init(processor_t* const proc, reg_t max_isa)
 
   const reg_t srmcfg_mask = SRMCFG_MCID | SRMCFG_RCID;
   add_const_ext_csr(EXT_SSQOSID, CSR_SRMCFG, std::make_shared<srmcfg_csr_t>(proc, CSR_SRMCFG, srmcfg_mask, 0));
+
+  //sifive only
+  add_csr(CSR_MBPM, std::make_shared<basic_csr_t>(proc, CSR_MBPM, 0));
+  add_csr(CSR_MCHICKEN, std::make_shared<basic_csr_t>(proc, CSR_MCHICKEN, 0));
+  add_csr(CSR_MCHICKEN2, std::make_shared<basic_csr_t>(proc, CSR_MCHICKEN2, 0));
+  add_csr(CSR_MHWPF, std::make_shared<basic_csr_t>(proc, CSR_MHWPF, 0));
+  add_csr(CSR_MHWPF2, std::make_shared<basic_csr_t>(proc, CSR_MHWPF2, 0));
+  add_csr(CSR_MTGVCHICKEN, std::make_shared<basic_csr_t>(proc, CSR_MTGVCHICKEN, 0));
+  add_csr(CSR_MTUNE, std::make_shared<basic_csr_t>(proc, CSR_MTUNE, 0));
+  add_csr(CSR_MDDPM, std::make_shared<basic_csr_t>(proc, CSR_MDDPM, 0));
+  add_csr(CSR_MVECTORPOWERCAP, std::make_shared<basic_csr_t>(proc, CSR_MVECTORPOWERCAP, 0));
 }
