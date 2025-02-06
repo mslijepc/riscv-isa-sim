@@ -256,10 +256,11 @@ static std::vector<mem_cfg_t> parse_mem_layout(const char* arg)
 static std::vector<std::pair<reg_t, abstract_mem_t*>> make_mems(const std::vector<mem_cfg_t> &layout)
 {
   std::vector<std::pair<reg_t, abstract_mem_t*>> mems;
-  mems.reserve(layout.size());
+  mems.reserve(layout.size() + 1); // TODO: mslijepc Fix this workaround
   for (const auto &cfg : layout) {
     mems.push_back(std::make_pair(cfg.get_base(), new mem_t(cfg.get_size())));
   }
+
   return mems;
 }
 
