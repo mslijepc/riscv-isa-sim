@@ -80,6 +80,17 @@ public:
 
   size_t nprocs() const { return hartids.size(); }
   size_t max_hartid() const { return hartids.back(); }
+
+  void set_systemc_config( const char* isa_str, 
+    const std::vector<std::pair<reg_t, size_t>>& mem_layout,
+    const reg_t tty_base
+    ) {
+      isa = isa_str;
+      for (auto& mem : mem_layout) {
+        this->mem_layout.push_back(mem_cfg_t(mem.first, mem.second));
+      }
+      // this->mem_layout.push_back(mem_cfg_t(tty_base, 0x1000));
+    }
 };
 
 #endif
