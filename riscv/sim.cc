@@ -399,7 +399,7 @@ void sim_t::set_rom()
   add_device(DEFAULT_RSTVEC, boot_rom);
 }
 
-char* sim_t::addr_to_mem(reg_t paddr, const uint8_t* bytes) {
+char* sim_t::addr_to_mem(reg_t paddr, const size_t len, const uint8_t* bytes) {
   if (!paddr_ok(paddr))
     return NULL;
   auto desc = bus.find_device(paddr);
