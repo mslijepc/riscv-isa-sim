@@ -6,6 +6,8 @@
 #include <vector>
 #include "decode.h"
 #include <cassert>
+#include <string>
+#include "platform.h"
 
 typedef enum {
   endianness_little,
@@ -36,10 +38,24 @@ private:
 // Configuration that describes a memory region
 class mem_cfg_t
 {
-public:
-  static bool check_if_supported(reg_t base, reg_t size);
+  // mslijepc workaround
+  #define PGSHIFT_MEM 12
+  static constexpr reg_t PGSIZE_MEM = 1 << PGSHIFT_MEM;
+  static constexpr reg_t PGMASK_MEM = ~(PGSIZE_MEM-1);
+  // end workaround
 
-  mem_cfg_t(reg_t base, reg_t size);
+public:
+  static bool check_if_supported(reg_t base, reg_t size) {
+  return (size % PGSIZE_MEM == 0) &&
+         (base % PGSIZE_MEM == 0) &&
+         (size_t(size) == size) &&
+         (size > 0) &&
+         ((base + size > base) || (base + size == 0));
+  }
+
+  mem_cfg_t(reg_t base, reg_t size) : base(base), size(size) {
+      assert(mem_cfg_t::check_if_supported(base, size));
+  }
 
   reg_t get_base() const {
     return base;
@@ -60,9 +76,42 @@ private:
 
 class cfg_t
 {
+  // mslijepc workaround
+  #define PMP_SHIFT_CFG 2
+  const char* s76_isa;
+  // end workaround
 public:
-  cfg_t();
+  cfg_t() {
+    // The default system configuration
+    initrd_bounds    = std::make_pair((reg_t)0, (reg_t)0);
+    bootargs         = nullptr;
+    isa              = "rv64imafdc_zicntr_zihpm";
+    priv             = "MSU";
+    misaligned       = false;
+    endianness       = endianness_little;
+    pmpregions       = 16;
+    pmpgranularity   = (1 << PMP_SHIFT_CFG);
+    mem_layout       = std::vector<mem_cfg_t>({mem_cfg_t(reg_t(DRAM_BASE), (size_t)2048 << 20)});
+    hartids          = std::vector<size_t>({0});
+    explicit_hartids = false;
+    real_time_clint  = false;
+    trigger_count    = 4;
+    // end workaround
+  }
 
+  void set_systemc_config(
+    const char* isa_str, 
+    const std::vector<std::pair<reg_t, size_t>>& mem_layout,
+    const reg_t tty_base
+    ) {
+
+    isa = isa_str;
+    for (const auto& mem : mem_layout) {
+      this->mem_layout.push_back(mem_cfg_t(mem.first, mem.second));
+    }
+    this->tty_base = tty_base;
+  }
+ 
   std::pair<reg_t, reg_t> initrd_bounds;
   const char *            bootargs;
   const char *            isa;
@@ -77,6 +126,7 @@ public:
   bool                    explicit_hartids;
   bool                    real_time_clint;
   reg_t                   trigger_count;
+  reg_t                   tty_base; // mslijepc TODO: make this optional
 
   size_t nprocs() const { return hartids.size(); }
   size_t max_hartid() const { return hartids.back(); }

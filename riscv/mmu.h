@@ -72,6 +72,17 @@ private:
   reg_t get_pmlen(bool effective_virt, reg_t effective_priv, xlate_flags_t flags) const;
   mem_access_info_t generate_access_info(reg_t addr, access_type type, xlate_flags_t xlate_flags);
 
+  reg_t icache_misses{0};
+  reg_t icache_hits{0};
+
+  reg_t dcache_misses{0};
+  reg_t dcache_hits{0};
+
+  reg_t refill_tlb_cnt{0};
+
+  void print_stats();
+  bool finished = false;
+
 public:
   mmu_t(simif_t* sim, endianness_t endianness, processor_t* proc);
   ~mmu_t();
@@ -84,8 +95,10 @@ public:
     bool tlb_hit = tlb_load_tag[vpn % TLB_ENTRIES] == vpn;
 
     if (likely(!xlate_flags.is_special_access() && aligned && tlb_hit)) {
+      dcache_hits++;
       res = *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr);
     } else {
+      dcache_misses++;
       load_slow_path(addr, sizeof(T), (uint8_t*)&res, xlate_flags);
     }
 
@@ -125,8 +138,21 @@ public:
     bool tlb_hit = tlb_store_tag[vpn % TLB_ENTRIES] == vpn;
 
     if (!xlate_flags.is_special_access() && likely(aligned && tlb_hit)) {
+      dcache_hits++;
+      if (addr == 0x5fffb030) {
+        char c = (char)val;
+        printf("%c", c);
+      } else if (addr == 0x5fffb008) {
+          printf("This should be end\n");
+          if (!finished) // print stats only once
+            print_stats();
+          exit(0);
+          finished = true;
+          return;
+      }
       *(target_endian<T>*)(tlb_data[vpn % TLB_ENTRIES].host_offset + addr) = to_target(val);
     } else {
+      dcache_misses++;
       target_endian<T> target_val = to_target(val);
       store_slow_path(addr, sizeof(T), (const uint8_t*)&target_val, xlate_flags, true, false);
     }
@@ -337,8 +363,11 @@ public:
   inline icache_entry_t* access_icache(reg_t addr)
   {
     icache_entry_t* entry = &icache[icache_index(addr)];
-    if (likely(entry->tag == addr))
+    if (likely(entry->tag == addr)) {
+      icache_hits++;
       return entry;
+    }
+    icache_misses++;
     return refill_icache(addr, entry);
   }
 

@@ -18,6 +18,7 @@ clint_t::clint_t(const simif_t* sim, uint64_t freq_hz, bool real_time)
   tick(0);
 }
 
+
 /* 0000 msip hart 0
  * 0004 msip hart 1
  * 4000 mtimecmp hart 0 lo

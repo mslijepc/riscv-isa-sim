@@ -15,7 +15,7 @@ class simif_t
 {
 public:
   // should return NULL for MMIO addresses
-  virtual char* addr_to_mem(reg_t paddr) = 0;
+  virtual char* addr_to_mem(reg_t paddr, const uint8_t* bytes = nullptr) = 0;
   virtual bool reservable(reg_t paddr) { return addr_to_mem(paddr); }
   // used for MMIO addresses
   virtual bool mmio_fetch(reg_t paddr, size_t len, uint8_t* bytes) { return mmio_load(paddr, len, bytes); }
@@ -34,6 +34,8 @@ public:
   unsigned nprocs() const { return get_cfg().nprocs(); }
 
   mmu_t* debug_mmu;  // debug port into main memory, for use by debug_module
+
+  virtual char* send_dmi(reg_t paddr) {return nullptr;}
 };
 
 #endif
