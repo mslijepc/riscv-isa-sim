@@ -21,6 +21,18 @@ const reg_t PGSIZE = 1 << PGSHIFT;
 const reg_t PGMASK = ~(PGSIZE-1);
 #define MAX_PADDR_BITS 64
 
+#ifndef MMU_OBSERVE_FETCH
+#define MMU_OBSERVE_FETCH(addr, insn, length)
+#endif
+
+#ifndef MMU_OBSERVE_LOAD
+#define MMU_OBSERVE_LOAD(addr, data, length)
+#endif
+
+#ifndef MMU_OBSERVE_STORE
+#define MMU_OBSERVE_STORE(addr, data, length)
+#endif
+
 struct insn_fetch_t
 {
   insn_func_t func;
@@ -92,6 +104,7 @@ public:
     if (unlikely(proc && proc->get_log_commits_enabled()))
       proc->state.log_mem_read.push_back(std::make_tuple(addr, 0, sizeof(T)));
 
+    MMU_OBSERVE_LOAD(addr,from_target(res),sizeof(T));
     return from_target(res);
   }
 
@@ -133,6 +146,8 @@ public:
 
     if (unlikely(proc && proc->get_log_commits_enabled()))
       proc->state.log_mem_write.push_back(std::make_tuple(addr, val, sizeof(T)));
+
+      MMU_OBSERVE_STORE(addr, val, sizeof(T));
   }
 
   template<typename T>
@@ -334,14 +349,19 @@ public:
       entry->tag = -1;
       tracer.trace(paddr, length, FETCH);
     }
+
+    MMU_OBSERVE_FETCH(addr, insn, length);
+
     return entry;
   }
 
   inline icache_entry_t* access_icache(reg_t addr)
   {
     icache_entry_t* entry = &icache[icache_index(addr)];
-    if (likely(entry->tag == addr))
+    if (likely(entry->tag == addr)){
+      MMU_OBSERVE_FETCH(addr, entry->data.insn, insn_length(entry->data.insn.bits()));
       return entry;
+    }
     return refill_icache(addr, entry);
   }
 
