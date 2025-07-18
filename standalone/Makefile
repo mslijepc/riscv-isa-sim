@@ -16,7 +16,7 @@ default-CXXFLAGS := $(default-CFLAGS) -std=c++2a
 CXX           := g++
 COMPILE       := $(CXX) -MMD -MP $(default-CXXFLAGS) -iquote . -I../riscv -I../fesvr -I../disasm -I../softfloat
 LD            := $(CXX)
-LINK          := $(LD)
+LINK          := $(LD) -shared
 
 # Extension definition (mimicking customext)
 xrockettest_srcs := xrockettest.cc
@@ -28,7 +28,7 @@ $(xrockettest_objs) : %.o : %.cc
 	$(COMPILE) -c $<
 
 libxrockettest.so : $(xrockettest_objs)
-	$(LINK) -shared -o $@ $^
+	$(CXX) -shared -o $@ $^
 
 # Targets
 all: libxrockettest.so
