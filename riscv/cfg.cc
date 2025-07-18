@@ -36,7 +36,7 @@ cfg_t::cfg_t()
   // The default system configuration
   initrd_bounds    = std::make_pair((reg_t)0, (reg_t)0);
   bootargs         = nullptr;
-  isa              = DEFAULT_ISA;
+  isa              = "RV64IMAFDCV_xrockettest";
   priv             = DEFAULT_PRIV;
   misaligned       = false;
   endianness       = endianness_little;
