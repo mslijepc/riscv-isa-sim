@@ -1,0 +1,26 @@
+CXX = g++
+CXXFLAGS = -std=c++2a -fPIC -O2 -Wall -MMD -MP -D_GNU_SOURCE
+INCLUDES = -I../riscv -I../fesvr -I../disasm -I../softfloat
+
+SOURCES = xrockettest.cc
+OBJECTS = $(SOURCES:.cc=.o)
+DEPS = $(OBJECTS:.o=.d)
+TARGET = libxrockettest.so
+
+# Link against required libraries
+LIBS = -L../build -lriscv -ldisasm -lsoftfloat
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CXX) -shared -o $@ $^ $(LIBS)
+
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+clean:
+	rm -f $(OBJECTS) $(TARGET) $(DEPS)
+
+-include $(DEPS)
+
+.PHONY: all clean
