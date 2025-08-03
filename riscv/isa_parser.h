@@ -93,6 +93,11 @@ typedef enum {
   EXT_SSNPM,
   EXT_SMAIA,
   EXT_SSAIA,
+  
+#ifdef CUSTOM_ISA_EXTENSIONS
+#include "custom_isa_extensions.inl"
+#endif
+  
   NUM_ISA_EXTENSIONS
 } isa_extension_t;
 
